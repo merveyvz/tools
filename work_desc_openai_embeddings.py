@@ -3,7 +3,7 @@ import csv
 
 from openai import OpenAI
 from neo4j import GraphDatabase
-
+import json
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -38,7 +38,7 @@ def get_work_descriptions(limit=None):
 def generate_embeddings(file_name, limit=None):
     csvfile_out = open(file_name, 'w', encoding='utf8', newline='')
     fieldnames = ['workId', 'embedding']
-    output_plot = csv.DictWriter(csvfile_out, fieldnames=fieldnames)
+    output_plot = csv.DictWriter(csvfile_out, fieldnames=fieldnames,delimiter=';')
     output_plot.writeheader()
 
     works = get_work_descriptions(limit=limit)
@@ -56,9 +56,10 @@ def generate_embeddings(file_name, limit=None):
             model='text-embedding-ada-002'
         )
 
+        embedding_list = response.data[0].embedding
         output_plot.writerow({
             'workId': work['workId'],
-            'embedding': response.data[0].embedding
+            'embedding': json.dumps(embedding_list)  # Listeyi JSON stringine çevir
         })
 
     csvfile_out.close()
